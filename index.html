@@ -7,104 +7,109 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --bg: #0B0E14;
-            --card-bg: #141922;
-            --accent: #6C5CE7;
+            --bg: #090D16;
+            --card-bg: #111827;
+            --accent: #8B5CF6;
+            --accent-glow: rgba(139, 92, 246, 0.5);
             --text: #FFFFFF;
-            --text-sec: #A0AEC0;
-            --green: #00B894;
+            --text-sec: #9CA3AF;
+            --green: #10B981;
+            --green-glow: rgba(16, 185, 129, 0.3);
         }
         body {
-            font-family: system-ui, sans-serif;
+            font-family: 'SF Pro Display', -apple-system, sans-serif;
             background: var(--bg);
             color: var(--text);
-            margin: 0; padding: 16px;
+            margin: 0; padding: 20px;
+            min-height: 100vh;
+            box-sizing: border-box;
         }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .balance-card { background: var(--card-bg); padding: 20px; border-radius: 16px; text-align: center; border: 1px solid #2D3748; }
-        .balance { font-size: 28px; font-weight: bold; color: var(--green); }
-        .btn-dep { background: var(--accent); color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .market-grid { display: grid; gap: 12px; margin-top: 20px; }
-        .asset-card { background: var(--card-bg); padding: 16px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; }
-        .asset-info h4 { margin: 0; font-size: 16px; }
-        .asset-info p { margin: 4px 0 0; font-size: 12px; color: var(--text-sec); }
-        .forecast { font-size: 12px; color: var(--green); font-weight: bold; }
-        .buy-btn { background: #2D3748; color: var(--text); border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; }
-        .buy-btn:active { background: var(--accent); }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .logo h2 { margin: 0; font-size: 24px; background: linear-gradient(90deg, #F43F5E, #8B5CF6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .btn-dep { background: transparent; border: 1px solid var(--accent); color: var(--accent); padding: 10px 20px; border-radius: 12px; font-weight: 600; cursor: pointer; box-shadow: 0 0 15px var(--accent-glow); transition: all 0.3s; }
+        .btn-dep:active { transform: scale(0.95); background: var(--accent); color: white; }
+        
+        .balance-card { background: var(--card-bg); padding: 28px; border-radius: 24px; text-align: center; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 24px; }
+        .balance-title { font-size: 14px; color: var(--text-sec); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+        .balance { font-size: 36px; font-weight: 800; color: var(--green); text-shadow: 0 0 20px var(--green-glow); }
+        
+        .section-title { font-size: 18px; font-weight: 700; margin-bottom: 16px; color: var(--text); }
+        .market-grid { display: grid; gap: 16px; }
+        .asset-card { background: var(--card-bg); padding: 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; transition: transform 0.2s; }
+        .asset-card:active { transform: scale(0.98); }
+        .asset-info { display: flex; align-items: center; gap: 16px; }
+        .icon { font-size: 32px; background: rgba(255,255,255,0.05); width: 60px; height: 60px; border-radius: 16px; display: flex; align-items: center; justify-content: center; }
+        .details h4 { margin: 0; font-size: 18px; }
+        .details p { margin: 4px 0 0; font-size: 14px; color: var(--text-sec); }
+        .forecast { color: var(--green); font-weight: 600; }
+        
+        .buy-btn { background: linear-gradient(135deg, #6366F1, #8B5CF6); color: white; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3); }
+        .buy-btn:active { opacity: 0.8; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <div>
-        <h2 style="margin:0;">CryptoTrade</h2>
-        <span style="font-size: 12px; color: var(--text-sec);">Симулятор биржи</span>
+    <div class="logo">
+        <h2>⚡️ CryptoTrade</h2>
     </div>
     <button class="btn-dep" onclick="openDeposit()">Пополнить</button>
 </div>
 
 <div class="balance-card">
-    <div style="font-size: 14px; color: var(--text-sec);">Ваш баланс</div>
+    <div class="balance-title">Ваш баланс</div>
     <div class="balance"><span id="balance">1000.00</span> CRD</div>
 </div>
 
-<div class="market-grid" id="market">
-    <!-- Скрипт заполнит рынок -->
-</div>
+<div class="section-title">Рынок активов</div>
+<div class="market-grid" id="market"></div>
 
 <script>
     let tg = window.Telegram.WebApp;
     tg.expand();
 
-    // Загружаем данные из памяти или ставим начальные
     let balance = parseFloat(localStorage.getItem('balance')) || 1000.00;
-    let assetsCount = parseInt(localStorage.getItem('assetsCount')) || 0;
 
     const assets = [
-        { name: "Bitcoin", price: 500, change: "+5.4% к росту", icon: "🪙" },
-        { name: "Ethereum", price: 300, change: "+3.2% к росту", icon: "💎" },
-        { name: "Solana", price: 100, change: "-1.5% коррекция", icon: "☀️" },
-        { name: "MemeCoin", price: 50, change: "⚠️ Высокий риск", icon: "🐶" }
+        { name: "CyberCoin", price: 200, change: "🚀 +12.4% рост", icon: "🤖" },
+        { name: "Etherium Pro", price: 500, change: "📈 +8.1% стабильность", icon: "💎" },
+        { name: "Solaris", price: 100, change: "🔥 +25.0% хайп", icon: "☀️" },
+        { name: "MemeDoge", price: 50, change: "✨ +50.2% ракета", icon: "🐶" }
     ];
 
     function renderMarket() {
         const container = document.getElementById('market');
         container.innerHTML = assets.map((a, index) => `
             <div class="asset-card">
-                <div style="font-size: 24px;">${a.icon}</div>
-                <div class="asset-info" style="flex-grow: 1; margin-left: 12px;">
-                    <h4>${a.name}</h4>
-                    <p>${a.price} CRD • <span class="forecast">${a.change}</span></p>
+                <div class="asset-info">
+                    <div class="icon">${a.icon}</div>
+                    <div class="details">
+                        <h4>${a.name}</h4>
+                        <p>${a.price} CRD • <span class="forecast">${a.change}</span></p>
+                    </div>
                 </div>
                 <button class="buy-btn" onclick="buyAsset(${index})">Купить</button>
             </div>
         `).join('');
     }
 
-    function saveデータ() {
-        localStorage.setItem('balance', balance);
-        localStorage.setItem('assetsCount', assetsCount);
-    }
-
     function buyAsset(index) {
         const asset = assets[index];
         if (balance >= asset.price) {
             balance -= asset.price;
-            assetsCount += 1;
+            localStorage.setItem('balance', balance);
             document.getElementById('balance').innerText = balance.toFixed(2);
-            saveデータ(); // Сохраняем прогресс
             if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-            tg.showAlert(`Вы успешно приобрели ${asset.name}! Всего куплено: ${assetsCount}`);
+            tg.showAlert(`Успешная покупка ${asset.name}!`);
         } else {
             if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-            tg.showAlert("Недостаточно средств. Нажмите 'Пополнить' для покупки кредитов.");
+            tg.showAlert("Недостаточно кредитов. Пополните баланс!");
         }
     }
 
     function openDeposit() {
-        // Отправляет команду боту, чтобы он прислал ссылку на оплату
         tg.sendData('/deposit');
-        tg.close(); // Закрываем Mini App, чтобы пользователь перешел в чат к боту
+        tg.close();
     }
 
     document.getElementById('balance').innerText = balance.toFixed(2);
