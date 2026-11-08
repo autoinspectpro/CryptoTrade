@@ -37,20 +37,36 @@
     <h1>📈 Биржевой Симулятор</h1>
     <div class="card">
         <h3>Твой баланс</h3>
-        <p id="balance">0 кредитов</p>
+        <p id="balance">1000 кредитов</p>
     </div>
     <div class="card">
-        <h3>Рынок</h3>
+        <h3>Рынок активов</h3>
         <p>Криптомем: 100 кредитов</p>
-        <button onclick="buyAsset()">Купить актив</button>
+        <button onclick="buyAsset()">Купить Криптомем</button>
+    </div>
+    <div class="card">
+        <h3>Твой портфель</h3>
+        <p id="portfolio">Куплено активов: 0</p>
     </div>
 
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
 
+        let balance = 1000;
+        let assetsCount = 0;
+
         function buyAsset() {
-            alert("Покупка совершена!");
+            const price = 100;
+            if (balance >= price) {
+                balance -= price;
+                assetsCount += 1;
+                document.getElementById("balance").innerText = balance + " кредитов";
+                document.getElementById("portfolio").innerText = "Куплено активов: " + assetsCount;
+                tg.showAlert("Успешно куплено!");
+            } else {
+                tg.showAlert("Недостаточно кредитов! Пополни баланс через бота командой /deposit.");
+            }
         }
     </script>
 </body>
