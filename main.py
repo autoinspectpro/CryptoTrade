@@ -36,7 +36,7 @@ async def cmd_start(message: types.Message):
     
     text = (
         "🚀 **Добро пожаловать в биржевой симулятор!**\n\n"
-        "Теперь у нас есть современный интерфейс. Нажми кнопку ниже, чтобы открыть Mini App 👇"
+        "Нажми кнопку ниже, чтобы открыть Mini App и начать торговлю."
     )
     await message.answer(text, parse_mode="Markdown", reply_markup=keyboard)
 
@@ -62,7 +62,6 @@ async def cmd_deposit(message: types.Message):
             else:
                 await message.answer("Ошибка при создании счета. Попробуй позже.")
 
-# Веб-сервер для UptimeRobot, чтобы Render не засыпал
 async def handle(request):
     return web.Response(text="Bot is running!")
 
