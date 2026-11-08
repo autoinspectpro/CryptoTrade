@@ -32,7 +32,8 @@ async def cmd_start(message: types.Message):
         "Покупай виртуальные активы, следи за курсом и соревнуйся за лидерство.\n\n"
         "💳 /balance — Проверить баланс и портфель\n"
         "💎 /deposit — Пополнить баланс за криптовалюту\n"
-        "📈 /market — Рынок активов"
+        "📈 /market — Рынок активов\n"
+        "🛒 /buy <Название> <Кол-во> — Купить актив"
     )
     await message.answer(text, parse_mode="Markdown")
 
@@ -74,12 +75,45 @@ async def cmd_deposit(message: types.Message):
 
 @dp.message(Command("market"))
 async def cmd_market(message: types.Message):
-    market_text = "📈 **Текущие цены на бирже:**\n\n"
-    for name, price in assets_prices.items():
-        market_text += f"• **{name}** — {price} кредитов\n"
-    
-    market_text += "\n*(Функция покупки/продажи активов настраивается следующим шагом)*"
+    market_text = (
+        "📈 **Текущие цены на бирже:**\n\n"
+        "• 🐶 Криптомем — 100 кредитов\n"
+        "• ⚡️ Токен Хайпа — 150 кредитов\n"
+        "• 🪙 Цифровое золото — 500 кредитов\n"
+        "• 🔮 Энергия Сообщества — 50 кредитов\n\n"
+        "Используй /buy <Название> <Кол-во> для покупки."
+    )
     await message.answer(market_text, parse_mode="Markdown")
+
+@dp.message(Command("buy"))
+async def cmd_buy(message: types.Message):
+    args = message.text.split(maxsplit=2)
+    if len(args) < 3:
+        await message.answer("Используй формат: /buy <Название актива> <Количество>")
+        return
+
+    asset_name = args[1].capitalize()
+    try:
+        quantity = int(args[2])
+    except ValueError:
+        await message.answer("Укажи корректное целое число для покупки.")
+        return
+
+    if asset_name not in assets_prices:
+        await message.answer("Такого актива нет на рынке.")
+        return
+
+    total_cost = assets_prices[asset_name] * quantity
+    user_id = message.from_user.id
+
+    if users_balance.get(user_id, 0) < total_cost:
+        await message.answer("Недостаточно кредитов для покупки.")
+        return
+
+    users_balance[user_id] -= total_cost
+    user_assets[user_id][asset_name] = user_assets[user_id].get(asset_name, 0) + quantity
+
+    await message.answer(f"✅ Успешно куплено: {quantity} шт. {asset_name}!")
 
 if __name__ == "__main__":
     import asyncio
