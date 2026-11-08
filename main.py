@@ -7,7 +7,7 @@ from aiogram.types import WebAppInfo, InlineKeyboardMarkup, InlineKeyboardButton
 
 TELEGRAM_BOT_TOKEN = "9096171142:AAEuOhMiWZvKwJgh7MznzxjiNVUBY5l2pIw"
 CRYPTO_PAY_TOKEN = "671278:AAUtZLG9F0jDQSYp80SbwRfHV5KTccpocew"
-WEB_APP_URL = "https://autoinspectpro.github.io"  # Замени на свою точную ссылку, если в конце есть имя репозитория
+WEB_APP_URL = "https://autoinspectpro.github.io/CryptoTrade/"
 
 bot = Bot(token=TELEGRAM_BOT_TOKEN)
 dp = Dispatcher(storage=MemoryStorage())
@@ -29,7 +29,6 @@ async def cmd_start(message: types.Message):
         users_balance[user_id] = 0
         user_assets[user_id] = {k: 0 for k in assets_prices}
         
-    # Создаем красивую кнопку для открытия Mini App
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="🚀 Открыть Биржу Mini App", web_app=WebAppInfo(url=WEB_APP_URL))]
     ])
