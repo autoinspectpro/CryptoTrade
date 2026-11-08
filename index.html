@@ -56,7 +56,10 @@
     let tg = window.Telegram.WebApp;
     tg.expand();
 
-    let balance = 1000.00;
+    // Загружаем данные из памяти или ставим начальные
+    let balance = parseFloat(localStorage.getItem('balance')) || 1000.00;
+    let assetsCount = parseInt(localStorage.getItem('assetsCount')) || 0;
+
     const assets = [
         { name: "Bitcoin", price: 500, change: "+5.4% к росту", icon: "🪙" },
         { name: "Ethereum", price: 300, change: "+3.2% к росту", icon: "💎" },
@@ -78,13 +81,20 @@
         `).join('');
     }
 
+    function saveデータ() {
+        localStorage.setItem('balance', balance);
+        localStorage.setItem('assetsCount', assetsCount);
+    }
+
     function buyAsset(index) {
         const asset = assets[index];
         if (balance >= asset.price) {
             balance -= asset.price;
+            assetsCount += 1;
             document.getElementById('balance').innerText = balance.toFixed(2);
+            saveデータ(); // Сохраняем прогресс
             if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-            tg.showAlert(`Вы успешно приобрели ${asset.name}!`);
+            tg.showAlert(`Вы успешно приобрели ${asset.name}! Всего куплено: ${assetsCount}`);
         } else {
             if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
             tg.showAlert("Недостаточно средств. Нажмите 'Пополнить' для покупки кредитов.");
@@ -92,8 +102,9 @@
     }
 
     function openDeposit() {
-        // Передает команду боту для генерации инвойса пополнения
+        // Отправляет команду боту, чтобы он прислал ссылку на оплату
         tg.sendData('/deposit');
+        tg.close(); // Закрываем Mini App, чтобы пользователь перешел в чат к боту
     }
 
     document.getElementById('balance').innerText = balance.toFixed(2);
