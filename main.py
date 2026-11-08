@@ -44,6 +44,8 @@ async def cmd_balance(message: types.Message):
     assets = user_assets.get(user_id, {})
     
     portfolio_text = "\n".join([f"• {name}: {count}" for name, count in assets.items()])
+    if not any(assets.values()):
+        portfolio_text = "Пусто"
     
     text = (
         f"💰 **Твой баланс:** {balance} кредитов\n\n"
