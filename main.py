@@ -66,43 +66,52 @@ async def cmd_deposit(message: types.Message):
 
 # API эндпоинт для связи с Mini App
 async def api_deposit(request):
+    # Добавляем CORS заголовки, чтобы браузер не блокировал запрос
+    headers = {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type",
+        "Access-Control-Allow-Methods": "POST, OPTIONS"
+    }
+    
+    if request.method == "OPTIONS":
+        return web.Response(status=200, headers=headers)
+
     try:
         data = await request.json()
         user_id = data.get("user_id", 0)
         
         async with aiohttp.ClientSession() as session:
             url = "https://pay.crypt.bot/api/createInvoice"
-            headers = {"Crypto-Pay-API-Token": CRYPTO_PAY_TOKEN}
+            crypto_headers = {"Crypto-Pay-API-Token": CRYPTO_PAY_TOKEN}
             payload = {
                 "asset": "USDT",
                 "amount": "1.0",
                 "description": "Покупка кредитов в биржевом симуляторе",
                 "payload": f"user_id_{user_id}"
             }
-            async with session.post(url, json=payload, headers=headers) as resp:
+            async with session.post(url, json=payload, headers=crypto_headers) as resp:
                 res_data = await resp.json()
                 if res_data.get("ok"):
                     pay_url = res_data["result"]["pay_url"]
-                    return web.json_response({"pay_url": pay_url})
+                    return web.json_response({"pay_url": pay_url}, headers=headers)
                 else:
-                    return web.json_response({"pay_url": None}, status=400)
+                    return web.json_response({"pay_url": None}, status=400, headers=headers)
     except Exception as e:
-        return web.json_response({"error": str(e)}, status=500)
-
-async def handle(request):
-    return web.Response(text="Bot is running!")
+        return web.json_response({"error": str(e)}, status=500, headers=headers)
 
 async def web_server():
     app = web.Application()
     app.add_routes([
         web.get("/", handle),
-        web.post("/deposit-api", api_deposit)
+        web.post("/deposit-api", api_deposit),
+        web.options("/deposit-api", api_deposit) # Обработка preflight запроса CORS
     ])
     runner = web.AppRunner(app)
     await runner.setup()
     port = int(os.environ.get("PORT", 10000))
     site = web.TCPSite(runner, "0.0.0.0", port)
     await site.start()
+
 
 async def main():
     await web_server()
