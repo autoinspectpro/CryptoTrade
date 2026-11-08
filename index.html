@@ -108,9 +108,9 @@
     }
 
     function openDeposit() {
-        tg.sendData('/deposit');
-        tg.close();
-    }
+    window.open("https://t.me/cryptoo_tradee_bot?start=deposit", "_blank");
+}
+
 
     document.getElementById('balance').innerText = balance.toFixed(2);
     renderMarket();
