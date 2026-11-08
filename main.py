@@ -43,7 +43,6 @@ async def cmd_start(message: types.Message):
 
 @dp.message(Command("deposit"))
 async def cmd_deposit(message: types.Message):
-    # Запасной вариант через команду в боте
     async with aiohttp.ClientSession() as session:
         url = "https://pay.crypt.bot/api/createInvoice"
         headers = {"Crypto-Pay-API-Token": CRYPTO_PAY_TOKEN}
@@ -59,14 +58,17 @@ async def cmd_deposit(message: types.Message):
                 invoice_url = data["result"]["pay_url"]
                 await message.answer(
                     f"🔗 **Счет создан!**\n\nНажми на ссылку ниже для оплаты 1 USDT через CryptoBot:\n{invoice_url}",
-                    parse_Mode="Markdown"
+                    parse_mode="Markdown"
                 )
             else:
                 await message.answer("Ошибка при создании счета. Попробуй позже.")
 
-# API эндпоинт для связи с Mini App
+# Функция для главной страницы (проверка работоспособности)
+async def handle(request):
+    return web.Response(text="Bot is running!")
+
+# API эндпоинт для связи с Mini App с поддержкой CORS
 async def api_deposit(request):
-    # Добавляем CORS заголовки, чтобы браузер не блокировал запрос
     headers = {
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Headers": "Content-Type",
@@ -104,14 +106,13 @@ async def web_server():
     app.add_routes([
         web.get("/", handle),
         web.post("/deposit-api", api_deposit),
-        web.options("/deposit-api", api_deposit) # Обработка preflight запроса CORS
+        web.options("/deposit-api", api_deposit)
     ])
     runner = web.AppRunner(app)
     await runner.setup()
     port = int(os.environ.get("PORT", 10000))
     site = web.TCPSite(runner, "0.0.0.0", port)
     await site.start()
-
 
 async def main():
     await web_server()
